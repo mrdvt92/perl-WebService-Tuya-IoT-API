@@ -14,3 +14,6 @@ openapi
 tuyaus
 ua
 v1
+TinyTuya
+iOS
+JSON

@@ -1,6 +1,7 @@
 package WebService::Tuya::IoT::API;
 use strict;
 use warnings;
+require Data::Dumper;
 require Time::HiRes;
 require Digest::SHA;
 require Data::UUID;
@@ -12,7 +13,7 @@ our $PACKAGE = __PACKAGE__;
 
 =head1 NAME
 
-WebService::Tuya::IoT::API - Perl library to access the Tuya API
+WebService::Tuya::IoT::API - Perl library to access the Tuya IoT API
 
 =head1 SYNOPSIS
 
@@ -24,7 +25,27 @@ WebService::Tuya::IoT::API - Perl library to access the Tuya API
 
 =head1 DESCRIPTION
 
-This Perl package controls and reads state of Tuya compatible Smart Devices (Plugs, Switches, Lights, Window Covers, etc.) using the TuyaCloud API.
+Perl library to access the Tuya IoT API to control and read the state of Tuya compatible smart devices.
+
+Tuya compatible smart devices include outlets, switches, lights, window covers, etc.
+
+=head2 SETUP
+
+Other projects have documented device setup, so I will not go into details here.  The L<TinyTuya|https://github.com/jasonacox/tinytuya#setup-wizard---getting-local-keys> setup documentation is the best that I have found. Please note some setup instructions step through the process of creating an app inside the Tuya IoT project, but I was able to use the Smart Life app for device discovery and pair the app with the API by scanning the QR code.
+
+=over
+
+=item * You must configure your devices with the Smart Life (L<iOS|https://apps.apple.com/us/app/smart-life-smart-living/id1115101477>) app.
+
+=item * You must create an account and project on the L<Tuya IoT Platform|https://iot.tuya.com/>.
+
+=item * You must link the Smart Life app to the project with the QR code. 
+
+=item * You must configure the correct project data center to see your devices in the project (Note: My devices call the Western America Data Center even though I'm located in Eastern America).
+
+=item * You must use the host associated to your data center. The default host is the Americas which is set as openapi.tuyaus.com.
+
+=back
 
 =head1 CONSTRUCTORS
 
@@ -47,14 +68,19 @@ sub new {
 
 =head2 http_hostname
 
-  $ws->http_hostname("openapi.tuyacn.com");
+Sets and returns the host name for the API service endpoint.
+
+  $ws->http_hostname("openapi.tuyaus.com"); #Americas
+  $ws->http_hostname("openapi.tuyacn.com"); #China
+  $ws->http_hostname("openapi.tuyaeu.com"); #Europe
+  $ws->http_hostname("openapi.tuyain.com"); #India
 
 default: openapi.tuyaus.com
 
 =cut
 
 sub http_hostname {
-  my $self            = shift;
+  my $self                 = shift;
   $self->{'http_hostname'} = shift if @_;
   $self->{'http_hostname'} = 'openapi.tuyaus.com' unless defined $self->{'http_hostname'};
   return $self->{'http_hostname'};
@@ -62,7 +88,7 @@ sub http_hostname {
 
 =head2 client_id
 
-Sets and returns the client_id found on https://iot.tuya.com/ project overview page.
+Sets and returns the Client ID found on https://iot.tuya.com/ project overview page.
 
 =cut
 
@@ -75,12 +101,12 @@ sub client_id {
 
 =head2 client_secret
 
-Sets and returns the client_secret found on https://iot.tuya.com/ project overview page.
+Sets and returns the Client Secret found on https://iot.tuya.com/ project overview page.
 
 =cut
 
 sub client_secret {
-  my $self             = shift;
+  my $self                 = shift;
   $self->{'client_secret'} = shift if @_;
   $self->{'client_secret'} = die("Error: property client_secret required") unless $self->{'client_secret'};
   return $self->{'client_secret'};
@@ -88,7 +114,7 @@ sub client_secret {
 
 =head2 api_version
 
-Sets and returns the API version string used in the URL in the API calls.
+Sets and returns the API version string used in the URL on API web service calls.
 
   my $api_version = $ws->api_version;
 
@@ -97,34 +123,49 @@ default: v1.0
 =cut
 
 sub api_version {
-  my $self             = shift;
+  my $self               = shift;
   $self->{'api_version'} = shift if @_;
   $self->{'api_version'} = 'v1.0' unless $self->{'api_version'};
   return $self->{'api_version'};
+}
+
+sub _debug {
+  my $self          = shift;
+  $self->{'_debug'} = shift if @_;
+  $self->{'_debug'} = 0 unless $self->{'_debug'};
+  return $self->{'_debug'};
 }
 
 =head1 METHODS
 
 =head2 api
 
-This is a Tuya IoT API Request method which handles access token and web request signatures
+Calls the Tuya IoT API and returns the parsed JSON data structure.  This method automatically handles access token and web request signatures.
 
   my $response = $ws->api(GET  => 'token?grant_type=1');                                                             #get access token
   my $response = $ws->api(GET  => "iot-03/devices/$deviceid/status");                                                #get status of $deviceid
   my $response = $ws->api(POST => "iot-03/devices/$deviceid/commands", {commands=>[{code=>'switch_1', value=>\0}]}); #set switch_1 off on $deviceid
 
 References:
-  - https://developer.tuya.com/en/docs/iot/new-singnature?id=Kbw0q34cs2e5g
-  - https://github.com/jasonacox/tinytuya/blob/ffcec471a9c4bba38d5bf224608e20bc148f1b86/tinytuya/Cloud.py#L130
+
+=over
+
+=item * https://developer.tuya.com/en/docs/iot/new-singnature?id=Kbw0q34cs2e5g
+
+=item * https://github.com/jasonacox/tinytuya/blob/ffcec471a9c4bba38d5bf224608e20bc148f1b86/tinytuya/Cloud.py#L130
+
+=item * https://bestlab-platform.readthedocs.io/en/latest/bestlab_platform.tuya.html
+
+=back
 
 =cut
 
 # Thanks to Jason Cox at https://github.com/jasonacox/tinytuya
 # Copyright (c) 2022 Jason Cox - MIT License
 
-sub api {
+sub api {                                                                                                          #TODO: wrappers like api_get and api_post
   my $self             = shift;
-  my $http_method      = shift;
+  my $http_method      = shift;                                                                                    #TODO: die on bad http methods
   my $api_destination  = shift;                                                                                    #TODO: sort query parameters alphabetically
   my $input            = shift; #or undef
   my $content          = defined($input) ? JSON::XS::encode_json($input) : '';                                     #Note: empty string stringifies to "" in JSON
@@ -157,7 +198,13 @@ sub api {
   } else {
     $options->{'headers'}->{'access_token'}      = $access_token;
   }
+
+  local $Data::Dumper::Indent  = 1; #smaller index
+  local $Data::Dumper::Terse   = 1; #remove $VAR1 header
+
+  print Data::Dumper::Dumper({http_method => $http_method, url => $url, options => $options}) if $self->_debug > 1;
   my $response         = $self->ua->request($http_method, $url, $options);
+  print Data::Dumper::Dumper({response => $response}) if $self->_debug;
   my $status           = $response->{'status'};
   die("Error: Web service request unsuccessful - status: $status\n") unless $status eq '200';                     #TODO: better error handeling
   my $response_content = $response->{'content'};
@@ -165,24 +212,38 @@ sub api {
   my $response_decoded = eval{JSON::XS::decode_json($response_content)};
   my $error            = $@;
   die("Error: API returned invalid JSON - content: $response_content\n") if $error;
+  print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->_debug > 2;
   die("Error: API returned unsuccessful - content: $response_content\n") unless $response_decoded->{'success'};
   return $response_decoded
 }
 
+=head2 api_get, api_post, api_put, api_delete
+
+Wrappers around the C<api> method with hard coded HTTP methods.
+
+=cut
+
+sub api_get    {my $self = shift; return $self->api(GET    => @_)};
+sub api_post   {my $self = shift; return $self->api(POST   => @_)};
+sub api_put    {my $self = shift; return $self->api(PUT    => @_)};
+sub api_delete {my $self = shift; return $self->api(DELETE => @_)};
+
 =head2 access_token
 
-Wrapper around api which calls and caches the token web service for a temporary access token to be used for subsequent web service calls.
+Wrapper around C<api> method which calls and caches the token web service for a temporary access token to be used for subsequent web service calls.
 
 =cut
 
 sub access_token {
-  my $self            = shift;
+  my $self = shift;
   if (defined $self->{'_access_token_data'}) {
+    #clear expired access_token
     delete($self->{'_access_token_data'}) if Time::HiRes::time() > $self->{'_access_token_data'}->{'expire_time'};
   }
   unless (defined $self->{'_access_token_data'}) {
+    #get access_token and calculate expire_time epoch
     my $api_destination           = 'token?grant_type=1';
-    my $output                    = $self->api(GET => $api_destination);
+    my $output                    = $self->api_get($api_destination);
 
 #{
 #  "success":true,
@@ -207,7 +268,7 @@ sub access_token {
 
 =head2 device_status
 
-Wrapper around api method and the device status api destination.
+Wrapper around C<api> method to access the device status API destination.
 
   my $device_status = $ws->device_status($deviceid);
 
@@ -217,12 +278,12 @@ sub device_status {
   my $self            = shift;
   my $deviceid        = shift;
   my $api_destination = "iot-03/devices/$deviceid/status";
-  return $self->api(GET => $api_destination);
+  return $self->api_get($api_destination);
 }
 
 =head2 device_commands
 
-Wrapper around api method and the device commands api destination.
+Wrapper around C<api> method to access the device commands API destination.
 
   my $switch   = 'switch_1';
   my $value    = $boolean ? \1 : \0;
@@ -235,7 +296,23 @@ sub device_commands {
   my $deviceid        = shift;
   my @commands        = @_; #each command must be a hash reference
   my $api_destination = "iot-03/devices/$deviceid/commands";
-  return $self->api(POST => $api_destination, {commands=>\@commands});
+  return $self->api_post($api_destination, {commands=>\@commands});
+}
+
+=head2 device_command_code_value
+
+Wrapper around C<device_commands> for one command with code and value keys;
+
+  my $response = $ws->device_command_code_value($deviceid, $code, $value);
+
+=cut
+
+sub device_command_code_value {
+  my $self     = shift;
+  my $deviceid = shift or die('Error: method syntax device_command_code_value($deviceid, $code, $value);');
+  my $code     = shift; #undef ok?
+  my $value    = shift; #undef ok?
+  return $self->device_commands($deviceid, {code=>$code, value=>$value});
 }
 
 =head1 ACCESSORS
@@ -260,7 +337,7 @@ sub ua {
 
 =head1 SEE ALSO
 
-https://iot.tuya.com/, https://apps.apple.com/us/app/smart-life-smart-living/id1115101477, 
+https://iot.tuya.com/, https://github.com/jasonacox/tinytuya, https://apps.apple.com/us/app/smart-life-smart-living/id1115101477, 
 
 =head1 AUTHOR
 
@@ -268,9 +345,9 @@ Michael R. Davis
 
 =head1 COPYRIGHT AND LICENSE
 
-LICENSE MIT
+MIT License
 
-Copyright (C) 2023 by Michael R. Davis
+Copyright (c) 2023 Michael R. Davis
 
 =cut
 

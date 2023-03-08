@@ -6,3 +6,4 @@ LICENSE
 README.md
 t/001_load.t
 lib/WebService/Tuya/IoT/API.pm
+perl-WebService-Tuya-IoT-API.spec

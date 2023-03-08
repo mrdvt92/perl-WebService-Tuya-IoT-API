@@ -1,6 +1,7 @@
 use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME           => 'WebService::Tuya::IoT::API',
+    LICENSE        => 'mit',
     VERSION_FROM   => 'lib/WebService/Tuya/IoT/API.pm',
     PREREQ_PM      => {
                         'Time::HiRes' => 0,
