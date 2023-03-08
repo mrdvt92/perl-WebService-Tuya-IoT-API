@@ -163,7 +163,7 @@ References:
 # Thanks to Jason Cox at https://github.com/jasonacox/tinytuya
 # Copyright (c) 2022 Jason Cox - MIT License
 
-sub api {                                                                                                          #TODO: wrappers like api_get and api_post
+sub api {
   my $self             = shift;
   my $http_method      = shift;                                                                                    #TODO: die on bad http methods
   my $api_destination  = shift;                                                                                    #TODO: sort query parameters alphabetically
