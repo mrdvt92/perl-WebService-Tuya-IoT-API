@@ -166,10 +166,6 @@ sub api {
   my $error            = $@;
   die("Error: API returned invalid JSON - content: $response_content\n") if $error;
   die("Error: API returned unsuccessful - content: $response_content\n") unless $response_decoded->{'success'};
-
-  use Data::Dumper qw{Dumper};
-  print Dumper($response_decoded);
-
   return $response_decoded
 }
 
