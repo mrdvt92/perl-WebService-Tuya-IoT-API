@@ -35,11 +35,11 @@ Other projects have documented device setup, so I will not go into details here.
 
 =over
 
-=item * You must configure your devices with the Smart Life (L<iOS|https://apps.apple.com/us/app/smart-life-smart-living/id1115101477>) app.
+=item * You must configure your devices with the Smart Life (L<iOS|https://apps.apple.com/us/app/smart-life-smart-living/id1115101477>,L<Android|https://play.google.com/store/apps/details?id=com.tuya.smartlife>) app.
 
 =item * You must create an account and project on the L<Tuya IoT Platform|https://iot.tuya.com/>.
 
-=item * You must link the Smart Life app to the project with the QR code. 
+=item * You must link the Smart Life app to the project with the QR code.
 
 =item * You must configure the correct project data center to see your devices in the project (Note: My devices call the Western America Data Center even though I'm located in Eastern America).
 
@@ -50,11 +50,11 @@ Other projects have documented device setup, so I will not go into details here.
 =head1 CONSTRUCTORS
 
 =head2 new
- 
+
   my $ws = WebService::Tuya::IoT::API->new;
- 
+
 =cut
- 
+
 sub new {
   my $this  = shift;
   my $class = ref($this) ? ref($this) : $this;
@@ -88,7 +88,7 @@ sub http_hostname {
 
 =head2 client_id
 
-Sets and returns the Client ID found on https://iot.tuya.com/ project overview page.
+Sets and returns the Client ID found on L<https://iot.tuya.com/> project overview page.
 
 =cut
 
@@ -101,7 +101,7 @@ sub client_id {
 
 =head2 client_secret
 
-Sets and returns the Client Secret found on https://iot.tuya.com/ project overview page.
+Sets and returns the Client Secret found on L<https://iot.tuya.com/> project overview page.
 
 =cut
 
@@ -150,11 +150,11 @@ References:
 
 =over
 
-=item * https://developer.tuya.com/en/docs/iot/new-singnature?id=Kbw0q34cs2e5g
+=item * L<https://developer.tuya.com/en/docs/iot/new-singnature?id=Kbw0q34cs2e5g>
 
-=item * https://github.com/jasonacox/tinytuya/blob/ffcec471a9c4bba38d5bf224608e20bc148f1b86/tinytuya/Cloud.py#L130
+=item * L<https://github.com/jasonacox/tinytuya/blob/ffcec471a9c4bba38d5bf224608e20bc148f1b86/tinytuya/Cloud.py#L130>
 
-=item * https://bestlab-platform.readthedocs.io/en/latest/bestlab_platform.tuya.html
+=item * L<https://bestlab-platform.readthedocs.io/en/latest/bestlab_platform.tuya.html>
 
 =back
 
@@ -231,6 +231,8 @@ sub api_delete {my $self = shift; return $self->api(DELETE => @_)};
 =head2 access_token
 
 Wrapper around C<api> method which calls and caches the token web service for a temporary access token to be used for subsequent web service calls.
+
+  my $access_token = $ws->access_token; #requires client_id and client_secret
 
 =cut
 
@@ -337,7 +339,17 @@ sub ua {
 
 =head1 SEE ALSO
 
-https://iot.tuya.com/, https://github.com/jasonacox/tinytuya, https://apps.apple.com/us/app/smart-life-smart-living/id1115101477, 
+=over
+
+=item * L<Tuya IoT Platform|https://iot.tuya.com/>
+
+=item * L<TinyTuya - Python|https://github.com/jasonacox/tinytuya>
+
+=item * L<Smart Life - iOS|https://apps.apple.com/us/app/smart-life-smart-living/id1115101477>
+
+=item * L<Smart Life - Android|https://play.google.com/store/apps/details?id=com.tuya.smartlife>
+
+=back
 
 =head1 AUTHOR
 
