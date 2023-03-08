@@ -88,13 +88,13 @@ Wrapper around `api` method which calls and caches the token web service for a t
 
 ## device\_status
 
-Wrapper around `api` method and the device status API destination.
+Wrapper around `api` method to access the device status API destination.
 
     my $device_status = $ws->device_status($deviceid);
 
 ## device\_commands
 
-Wrapper around `api` method and the device commands API destination.
+Wrapper around `api` method to access the device commands API destination.
 
     my $switch   = 'switch_1';
     my $value    = $boolean ? \1 : \0;
