@@ -1,0 +1,8 @@
+Changes
+Makefile.PL
+MANIFEST
+CONTRIBUTING.md
+LICENSE
+README.md
+t/001_load.t
+lib/WebService/Tuya/IoT/API.pm
