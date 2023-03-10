@@ -1,6 +1,6 @@
 Name:           perl-WebService-Tuya-IoT-API
 Version:        0.02
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Perl library to access the Tuya IoT API
 License:        MIT
 Group:          Development/Libraries
