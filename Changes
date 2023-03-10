@@ -11,7 +11,7 @@ Revision history for Perl extension WebService::Tuya::IoT::API.
     - device_properties
     - device_status_code_value
   - Added live device tests - must enable with environment
-  - Added example sciprts to CPAN distribution
+  - Added example scripts to CPAN distribution
 
 0.01 2023-03-08
   - Minimum viable product for access token, device status, and device commands.
