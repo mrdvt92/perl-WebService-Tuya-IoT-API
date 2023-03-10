@@ -53,23 +53,15 @@ Sets and returns the Client ID found on [https://iot.tuya.com/](https://iot.tuya
 
 Sets and returns the Client Secret found on [https://iot.tuya.com/](https://iot.tuya.com/) project overview page.
 
-## api\_version
-
-Sets and returns the API version string used in the URL on API web service calls.
-
-    my $api_version = $ws->api_version;
-
-default: v1.0
-
 # METHODS
 
 ## api
 
 Calls the Tuya IoT API and returns the parsed JSON data structure.  This method automatically handles access token and web request signatures.
 
-    my $response = $ws->api(GET  => 'token?grant_type=1');                                                             #get access token
-    my $response = $ws->api(GET  => "iot-03/devices/$deviceid/status");                                                #get status of $deviceid
-    my $response = $ws->api(POST => "iot-03/devices/$deviceid/commands", {commands=>[{code=>'switch_1', value=>\0}]}); #set switch_1 off on $deviceid
+    my $response = $ws->api(GET  => 'v1.0/token?grant_type=1');                                                             #get access token
+    my $response = $ws->api(GET  => "v1.0/iot-03/devices/$deviceid/status");                                                #get status of $deviceid
+    my $response = $ws->api(POST => "v1.0/iot-03/devices/$deviceid/commands", {commands=>[{code=>'switch_1', value=>\0}]}); #set switch_1 off on $deviceid
 
 References:
 
@@ -92,6 +84,50 @@ Wrapper around `api` method which calls and caches the token web service for a t
 Wrapper around `api` method to access the device status API destination.
 
     my $device_status = $ws->device_status($deviceid);
+
+## device\_status\_code\_value
+
+Wrapper around `api` method to access the device status API destination and return the value for the given switch code.
+
+    my $value = $ws->device_status_code_value($deviceid, $code); #isa JSON Boolean
+
+default: code => switch\_1
+
+## device\_information
+
+Wrapper around `api` method to access the device information API destination.
+
+    my $device_information = $ws->device_information($deviceid);
+
+## device\_freeze\_state
+
+Wrapper around `api` method to access the device freeze-state API destination.
+
+    my $device_freeze_state = $ws->device_freeze_state($deviceid);
+
+## device\_factory\_infos
+
+Wrapper around `api` method to access the device factory-infos API destination.
+
+    my $device_factory_infos = $ws->device_factory_infos($deviceid);
+
+## device\_specification
+
+Wrapper around `api` method to access the device specification API destination.
+
+    my $device_specification = $ws->device_specification($deviceid);
+
+## device\_protocol
+
+Wrapper around `api` method to access the device protocol API destination.
+
+    my $device_protocol = $ws->device_protocol($deviceid);
+
+## device\_properties
+
+Wrapper around `api` method to access the device properties API destination.
+
+    my $device_properties = $ws->device_properties($deviceid);
 
 ## device\_commands
 

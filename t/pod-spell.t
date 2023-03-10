@@ -17,3 +17,4 @@ v1
 TinyTuya
 iOS
 JSON
+infos

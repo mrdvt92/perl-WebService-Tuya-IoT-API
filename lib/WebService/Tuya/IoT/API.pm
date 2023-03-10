@@ -7,8 +7,9 @@ require Digest::SHA;
 require Data::UUID;
 require JSON::XS;
 require HTTP::Tiny;
+require List::Util;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 our $PACKAGE = __PACKAGE__;
 
 =head1 NAME
@@ -112,23 +113,6 @@ sub client_secret {
   return $self->{'client_secret'};
 }
 
-=head2 api_version
-
-Sets and returns the API version string used in the URL on API web service calls.
-
-  my $api_version = $ws->api_version;
-
-default: v1.0
-
-=cut
-
-sub api_version {
-  my $self               = shift;
-  $self->{'api_version'} = shift if @_;
-  $self->{'api_version'} = 'v1.0' unless $self->{'api_version'};
-  return $self->{'api_version'};
-}
-
 sub _debug {
   my $self          = shift;
   $self->{'_debug'} = shift if @_;
@@ -142,9 +126,9 @@ sub _debug {
 
 Calls the Tuya IoT API and returns the parsed JSON data structure.  This method automatically handles access token and web request signatures.
 
-  my $response = $ws->api(GET  => 'token?grant_type=1');                                                             #get access token
-  my $response = $ws->api(GET  => "iot-03/devices/$deviceid/status");                                                #get status of $deviceid
-  my $response = $ws->api(POST => "iot-03/devices/$deviceid/commands", {commands=>[{code=>'switch_1', value=>\0}]}); #set switch_1 off on $deviceid
+  my $response = $ws->api(GET  => 'v1.0/token?grant_type=1');                                                             #get access token
+  my $response = $ws->api(GET  => "v1.0/iot-03/devices/$deviceid/status");                                                #get status of $deviceid
+  my $response = $ws->api(POST => "v1.0/iot-03/devices/$deviceid/commands", {commands=>[{code=>'switch_1', value=>\0}]}); #set switch_1 off on $deviceid
 
 References:
 
@@ -169,9 +153,9 @@ sub api {
   my $api_destination  = shift;                                                                                    #TODO: sort query parameters alphabetically
   my $input            = shift; #or undef
   my $content          = defined($input) ? JSON::XS::encode_json($input) : '';                                     #Note: empty string stringifies to "" in JSON
-  my $is_token         = $api_destination =~ m/\Atoken\b/ ? 1 : 0;
+  my $is_token         = $api_destination =~ m{v[0-9\.]+/token\b} ? 1 : 0;
   my $access_token     = $is_token ? undef : $self->access_token;                                                  #Note: recursive call
-  my $http_path        = sprintf('/%s/%s', $self->api_version, $api_destination);
+  my $http_path        = '/' . $api_destination;
   my $url              = sprintf('https://%s%s', $self->http_hostname, $http_path);                                #e.g. "https://openapi.tuyaus.com/v1.0/token?grant_type=1"
   my $nonce            = Data::UUID->new->create_str;                                                              #Field description - nonce: the universally unique identifier (UUID) generated for each API request.
   my $t                = int(Time::HiRes::time() * 1000);                                                          #Field description - t: the 13-digit standard timestamp.
@@ -206,14 +190,14 @@ sub api {
   my $response         = $self->ua->request($http_method, $url, $options);
   print Data::Dumper::Dumper({response => $response}) if $self->_debug;
   my $status           = $response->{'status'};
-  die("Error: Web service request unsuccessful - status: $status\n") unless $status eq '200';                     #TODO: better error handeling
+  die("Error: Web service request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq '200';                     #TODO: better error handeling
   my $response_content = $response->{'content'};
   local $@;
   my $response_decoded = eval{JSON::XS::decode_json($response_content)};
   my $error            = $@;
-  die("Error: API returned invalid JSON - content: $response_content\n") if $error;
+  die("Error: API returned invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
   print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->_debug > 2;
-  die("Error: API returned unsuccessful - content: $response_content\n") unless $response_decoded->{'success'};
+  die("Error: API returned unsuccessful - dest: $api_destination, content: $response_content\n") unless $response_decoded->{'success'};
   return $response_decoded
 }
 
@@ -244,7 +228,7 @@ sub access_token {
   }
   unless (defined $self->{'_access_token_data'}) {
     #get access_token and calculate expire_time epoch
-    my $api_destination           = 'token?grant_type=1';
+    my $api_destination           = 'v1.0/token?grant_type=1';
     my $output                    = $self->api_get($api_destination);
 
 #{
@@ -279,7 +263,119 @@ Wrapper around C<api> method to access the device status API destination.
 sub device_status {
   my $self            = shift;
   my $deviceid        = shift;
-  my $api_destination = "iot-03/devices/$deviceid/status";
+  my $api_destination = "v1.0/iot-03/devices/$deviceid/status";
+  return $self->api_get($api_destination);
+}
+
+=head2 device_status_code_value
+
+Wrapper around C<api> method to access the device status API destination and return the value for the given switch code.
+
+  my $value = $ws->device_status_code_value($deviceid, $code); #isa JSON Boolean
+
+default: code => switch_1
+
+=cut
+
+sub device_status_code_value {
+  my $self     = shift;
+  my $deviceid = shift;
+  my $code     = shift; $code = 'switch_1' unless defined $code; #5.8 syntax
+  my $response = $self->device_status($deviceid);
+  my $result   = $response->{'result'};
+  my $obj      = List::Util::first {$_->{'code'} eq $code} @$result;
+  my $value    = $obj->{'value'};
+  return $value;
+}
+
+=head2 device_information
+
+Wrapper around C<api> method to access the device information API destination.
+
+  my $device_information = $ws->device_information($deviceid);
+
+=cut
+
+sub device_information {
+  my $self            = shift;
+  my $deviceid        = shift;
+  my $api_destination = "v1.1/iot-03/devices/$deviceid";
+  return $self->api_get($api_destination);
+}
+
+=head2 device_freeze_state
+
+Wrapper around C<api> method to access the device freeze-state API destination.
+
+  my $device_freeze_state = $ws->device_freeze_state($deviceid);
+
+=cut
+
+sub device_freeze_state {
+  my $self            = shift;
+  my $deviceid        = shift;
+  my $api_destination = "v1.0/iot-03/devices/$deviceid/freeze-state";
+  return $self->api_get($api_destination);
+}
+
+=head2 device_factory_infos
+
+Wrapper around C<api> method to access the device factory-infos API destination.
+
+  my $device_factory_infos = $ws->device_factory_infos($deviceid);
+
+=cut
+
+sub device_factory_infos {
+  my $self            = shift;
+  my $deviceid        = shift;
+  my $api_destination = "v1.0/iot-03/devices/factory-infos?device_ids=$deviceid";
+
+  return $self->api_get($api_destination);
+}
+
+=head2 device_specification
+
+Wrapper around C<api> method to access the device specification API destination.
+
+  my $device_specification = $ws->device_specification($deviceid);
+
+=cut
+
+sub device_specification {
+  my $self            = shift;
+  my $deviceid        = shift;
+  my $api_destination = "v1.2/iot-03/devices/$deviceid/specification";
+  return $self->api_get($api_destination);
+}
+
+=head2 device_protocol
+
+Wrapper around C<api> method to access the device protocol API destination.
+
+  my $device_protocol = $ws->device_protocol($deviceid);
+
+=cut
+
+sub device_protocol {
+  my $self            = shift;
+  my $deviceid        = shift;
+  my $api_destination = "v1.0/iot-03/devices/protocol?device_ids=$deviceid";
+  return $self->api_get($api_destination);
+}
+
+=head2 device_properties
+
+Wrapper around C<api> method to access the device properties API destination.
+
+  my $device_properties = $ws->device_properties($deviceid);
+
+=cut
+
+sub device_properties {
+  my $self            = shift;
+  my $deviceid        = shift;
+  my $api_destination = "v1.0/iot-03/devices/$deviceid/properties";
   return $self->api_get($api_destination);
 }
 
@@ -297,7 +393,7 @@ sub device_commands {
   my $self            = shift;
   my $deviceid        = shift;
   my @commands        = @_; #each command must be a hash reference
-  my $api_destination = "iot-03/devices/$deviceid/commands";
+  my $api_destination = "v1.0/iot-03/devices/$deviceid/commands";
   return $self->api_post($api_destination, {commands=>\@commands});
 }
 

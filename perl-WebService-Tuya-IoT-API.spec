@@ -1,5 +1,5 @@
 Name:           perl-WebService-Tuya-IoT-API
-Version:        0.01
+Version:        0.02
 Release:        1%{?dist}
 Summary:        Perl library to access the Tuya IoT API
 License:        MIT
@@ -14,11 +14,13 @@ BuildRequires:  perl(ExtUtils::MakeMaker)
 BuildRequires:  perl(HTTP::Tiny)
 BuildRequires:  perl(JSON::XS)
 BuildRequires:  perl(Time::HiRes)
+BuildRequires:  perl(List::Util)
 Requires:       perl(Data::UUID)
 Requires:       perl(Digest::SHA)
 Requires:       perl(HTTP::Tiny)
 Requires:       perl(JSON::XS)
 Requires:       perl(Time::HiRes)
+Requires:       perl(List::Util)
 Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 
 %description
