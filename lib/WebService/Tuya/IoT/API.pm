@@ -149,26 +149,26 @@ References:
 
 sub api {
   my $self             = shift;
-  my $http_method      = shift;                                                                                    #TODO: die on bad http methods
-  my $api_destination  = shift;                                                                                    #TODO: sort query parameters alphabetically
+  my $http_method      = shift;                                                                 #TODO: die on bad http methods
+  my $api_destination  = shift;                                                                 #TODO: sort query parameters alphabetically
   my $input            = shift; #or undef
-  my $content          = defined($input) ? JSON::XS::encode_json($input) : '';                                     #Note: empty string stringifies to "" in JSON
+  my $content          = defined($input) ? JSON::XS::encode_json($input) : '';                  #Note: empty string stringifies to "" in JSON
   my $is_token         = $api_destination =~ m{v[0-9\.]+/token\b} ? 1 : 0;
   my $http_path        = '/' . $api_destination;
-  my $url              = sprintf('https://%s%s', $self->http_hostname, $http_path);                                #e.g. "https://openapi.tuyaus.com/v1.0/token?grant_type=1"
-  my $nonce            = Data::UUID->new->create_str;                                                              #Field description - nonce: the universally unique identifier (UUID) generated for each API request.
-  my $t                = int(Time::HiRes::time() * 1000);                                                          #Field description - t: the 13-digit standard timestamp.
-  my $content_sha256   = Digest::SHA::sha256_hex($content);                                                        #Content-SHA256 represents the SHA256 value of a request body
-  my $headers          = '';                                                                                       #signature headers
+  my $url              = sprintf('https://%s%s', $self->http_hostname, $http_path);             #e.g. "https://openapi.tuyaus.com/v1.0/token?grant_type=1"
+  my $nonce            = Data::UUID->new->create_str;                                           #Field description - nonce: the universally unique identifier (UUID) generated for each API request.
+  my $t                = int(Time::HiRes::time() * 1000);                                       #Field description - t: the 13-digit standard timestamp.
+  my $content_sha256   = Digest::SHA::sha256_hex($content);                                     #Content-SHA256 represents the SHA256 value of a request body
+  my $headers          = '';                                                                    #signature headers
   my @access_token     = ();
   if ($is_token) {
-    $headers           = sprintf("secret:%s\n",  $self->client_secret);                                            #TODO: add support for area_id and request_id
+    $headers           = sprintf("secret:%s\n",  $self->client_secret);                         #TODO: add support for area_id and request_id
   } else {
-    $access_token[0]   = $self->access_token;                                                                      #Note: recursive call
+    $access_token[0]   = $self->access_token;                                                   #Note: recursive call
   }
   my $stringToSign     = join("\n", $http_method, $content_sha256, $headers, $http_path);
   my $str              = join('',  $self->client_id, @access_token, $t, $nonce, $stringToSign); #Signature algorithm - str = client_id + @access_token + t + nonce + stringToSign
-  my $sign             = uc(Digest::SHA::hmac_sha256_hex($str, $self->client_secret));                             #Signature algorithm - sign = HMAC-SHA256(str, secret).toUpperCase()
+  my $sign             = uc(Digest::SHA::hmac_sha256_hex($str, $self->client_secret));          #Signature algorithm - sign = HMAC-SHA256(str, secret).toUpperCase()
   my $options          = {
                           headers => {
                                       'Content-Type' => 'application/json',
@@ -190,17 +190,17 @@ sub api {
   local $Data::Dumper::Indent  = 1; #smaller index
   local $Data::Dumper::Terse   = 1; #remove $VAR1 header
 
-  print Data::Dumper::Dumper({http_method => $http_method, url => $url, options => $options}) if $self->_debug > 1;
+  print Data::Dumper::Dumper({http_method => $http_method, url => $url, options => $options}) if $self->_debug >= 2;
   my $response         = $self->ua->request($http_method, $url, $options);
-  print Data::Dumper::Dumper({response => $response}) if $self->_debug;
+  print Data::Dumper::Dumper({response => $response}) if $self->_debug >= 1;
   my $status           = $response->{'status'};
-  die("Error: Web service request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq '200';                     #TODO: better error handeling
+  die("Error: Web service request unsuccessful - dest: $api_destination, status: $status\n") unless $status eq '200'; #TODO: better error handeling
   my $response_content = $response->{'content'};
   local $@;
   my $response_decoded = eval{JSON::XS::decode_json($response_content)};
   my $error            = $@;
   die("Error: API returned invalid JSON - dest: $api_destination, content: $response_content\n") if $error;
-  print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->_debug > 2;
+  print Data::Dumper::Dumper({response_decoded => $response_decoded}) if $self->_debug >= 3;
   die("Error: API returned unsuccessful - dest: $api_destination, content: $response_content\n") unless $response_decoded->{'success'};
   return $response_decoded
 }
