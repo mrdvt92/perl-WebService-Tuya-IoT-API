@@ -7,7 +7,7 @@ require Digest::SHA;
 require Data::UUID;
 require JSON::XS;
 require HTTP::Tiny;
-use List::Util qw{first}; #import required
+require List::Util;
 
 our $VERSION = '0.03';
 our $PACKAGE = __PACKAGE__;
@@ -287,7 +287,7 @@ sub device_status_code_value {
   my $code     = shift; $code = 'switch_1' unless defined $code; #5.8 syntax
   my $response = $self->device_status($deviceid);
   my $result   = $response->{'result'};
-  my $obj      = first {$_->{'code'} eq $code} @$result;
+  my $obj      = List::Util::first(sub{$_->{'code'} eq $code}, @$result);
   my $value    = $obj->{'value'};
   return $value;
 }
