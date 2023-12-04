@@ -30,7 +30,11 @@ Other projects have documented device setup, so I will not go into details here.
 
 ## new
 
-    my $ws = WebService::Tuya::IoT::API->new;
+    my $ws = WebService::Tuya::IoT::API->new(
+                                             client_id     => $my_client_id,
+                                             client_secret => $my_client_secret,
+                                             http_hostname => $my_http_hostname, #default openapi.tuyaus.com
+                                            );
 
 # PROPERTIES
 
