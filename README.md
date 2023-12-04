@@ -21,8 +21,8 @@ Tuya compatible smart devices include outlets, switches, lights, window covers, 
 Other projects have documented device setup, so I will not go into details here.  The [TinyTuya](https://github.com/jasonacox/tinytuya#setup-wizard---getting-local-keys) setup documentation is the best that I have found. Please note some setup instructions step through the process of creating an app inside the Tuya IoT project, but I was able to use the Smart Life app for device discovery and pair the app with the API by scanning the QR code.
 
 - You must configure your devices with the Smart Life ([iOS](https://apps.apple.com/us/app/smart-life-smart-living/id1115101477),[Android](https://play.google.com/store/apps/details?id=com.tuya.smartlife)) app.
-- You must create an account and project on the [Tuya IoT Platform](https://iot.tuya.com/).
-- You must link the Smart Life app to the project with the QR code.
+- You must create an account and cloud project on the [Tuya IoT Platform](https://iot.tuya.com/).
+- You must link the Smart Life app to the cloud project with the QR code from the devices tab.
 - You must configure the correct project data center to see your devices in the project (Note: My devices call the Western America Data Center even though I'm located in Eastern America).
 - You must use the host associated to your data center. The default host is the Americas which is set as openapi.tuyaus.com.
 

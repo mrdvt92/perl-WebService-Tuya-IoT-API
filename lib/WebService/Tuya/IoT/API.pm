@@ -38,9 +38,9 @@ Other projects have documented device setup, so I will not go into details here.
 
 =item * You must configure your devices with the Smart Life (L<iOS|https://apps.apple.com/us/app/smart-life-smart-living/id1115101477>,L<Android|https://play.google.com/store/apps/details?id=com.tuya.smartlife>) app.
 
-=item * You must create an account and project on the L<Tuya IoT Platform|https://iot.tuya.com/>.
+=item * You must create an account and cloud project on the L<Tuya IoT Platform|https://iot.tuya.com/>.
 
-=item * You must link the Smart Life app to the project with the QR code.
+=item * You must link the Smart Life app to the cloud project with the QR code from the devices tab.
 
 =item * You must configure the correct project data center to see your devices in the project (Note: My devices call the Western America Data Center even though I'm located in Eastern America).
 
